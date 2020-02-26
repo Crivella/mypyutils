@@ -1,17 +1,7 @@
-from .unsorted import tail
 from .dict import deep_update
 
-from aiida import load_profile, orm
+from aiida import orm
 from aiida.orm.utils import load_node
-from aiida.plugins import WorkflowFactory, CalculationFactory
-# from aiida.engine import submit
-
-from aiida_z2pack.workchains.chern import Z2pack3DChernWorkChain
-
-PwBandsWorkChain = WorkflowFactory('quantumespresso.pw.bands')
-PwCalc = CalculationFactory('quantumespresso.pw')
-
-load_profile()
 
 def ListInputs_to_dict(inputs):
     app = {}
@@ -48,10 +38,14 @@ def report_failed(node, tab='', actions={}):
         print(tab + '- {}<{}>: [{}] {}'.format(ptr.process_class.__name__, ptr.pk, ptr.exit_status, ptr.exit_message))
         if ptr.is_excepted:
             report_exception(ptr, tab=tab + '  ')
+        if ptr.exit_status:
+            failed_node = ptr
         try:
             ptr = ptr.called[0]
         except:
             break
+
+    print(tab + 'Failed on {}'.format(failed_node.process_class.__name__))
 
     for typ, act in actions.items():
         if failed_node.process_class == typ:
