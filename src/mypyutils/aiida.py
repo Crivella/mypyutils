@@ -39,14 +39,15 @@ def ListInputs_to_dict(inputs):
 
     return new
 
+def report_exception(node, tab=''):
+    print(tab + '{}'.format(('\n' + tab + '- ').join(str(node.exception).split('\n'))))
+
 def report_failed(node, tab='', actions={}):
     ptr = failed_node = node
     while True:
         print(tab + '- {}<{}>: [{}] {}'.format(ptr.process_class.__name__, ptr.pk, ptr.exit_status, ptr.exit_message))
         if ptr.is_excepted:
-            print(tab + '  ' + '- {}'.format(('\n'+ tab + '  ' + '- ').join(str(ptr.exception).split('\n'))))
-        if ptr.exit_status:
-            failed_node = ptr
+            report_exception(ptr, tab=tab + '  ')
         try:
             ptr = ptr.called[0]
         except:
@@ -85,7 +86,7 @@ def analyze_workchain(
 
     if wc.is_excepted:
         print('  Excepted!!')
-        print('    {}'.format('\n    - '.join(str(wc.exception).split('\n'))))
+        report_exception(wc, tab='    ')
 
         if not on_excepted is None:
             on_excepted(wc)
