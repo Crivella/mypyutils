@@ -149,7 +149,7 @@ def analyze_FindCrossingsWorkChain(node, gap_thr=0.0025, noprint=False):
         kpt_tree = KDTree(kpt_c)
         query    = centers.query_ball_tree(kpt_tree, r=distance*1.74/2)
 
-        pinned_thr = distance * 1.75
+        pinned_thr = distance * 3.75
 
         lim = max(-5 // np.log10(distance), 1) if distance < 1 else 200
         if distance < 0.01:
@@ -167,7 +167,7 @@ def analyze_FindCrossingsWorkChain(node, gap_thr=0.0025, noprint=False):
             mi =  g[q].argmin()
             min_gap = g[q[mi]]
             log('    {:2d}.  min_gap: {:.6f}  kpt: {}  pmg: {:.6f}  kpt: {} {}'.format(n, min_gap, kpt_c[q][mi], prev_min_gap, kpt_c[i], pinned[n]))
-            if min_gap / prev_min_gap > 0.9 and distance < 0.05:
+            if min_gap / prev_min_gap > 0.95 and distance < 0.005:
                 log('         skipping mg/pmg: {}'.format(min_gap / prev_min_gap))
                 continue
             scale = 2.5 if lim > 1 else 1.0001
