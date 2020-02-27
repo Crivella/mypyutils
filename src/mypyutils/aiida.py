@@ -69,6 +69,7 @@ def analyze_workchain(
     node,
     report_actions={},
     # **kwargs
+    on_finished_ok=None,
     on_failed=None,
     on_excepted=None
     ):
@@ -80,6 +81,8 @@ def analyze_workchain(
         print('  still running')
     if wc.is_finished_ok:
         print('  finished_ok')
+        if not on_finished_ok is None:
+            on_finished_ok(wc)
     if wc.is_failed:
         print('  Failed:')
         report_failed(wc, tab='    ', actions=report_actions)
