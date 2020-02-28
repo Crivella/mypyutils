@@ -69,35 +69,35 @@ def analyze_workchain(
     node,
     report_actions={},
     # **kwargs
+    on_running=None,
     on_finished_ok=None,
     on_failed=None,
-    on_excepted=None
+    on_excepted=None,
+    tab='',
     ):
     wc = validate_node(node)
 
-    print(wc.pk)
-    # relaunch = True
     if not wc.is_finished and not wc.is_excepted:
-        print('  still running')
+        print(tab + 'still running')
+        if not on_running is None:
+            on_running(wc)
     if wc.is_finished_ok:
-        print('  finished_ok')
+        print(tab + 'finished_ok')
         if not on_finished_ok is None:
             on_finished_ok(wc)
     if wc.is_failed:
-        print('  Failed:')
-        report_failed(wc, tab='    ', actions=report_actions)
+        print(tab + 'Failed:')
+        report_failed(wc, tab=tab+'  ', actions=report_actions)
 
         if not on_failed is None:
             on_failed(wc)
 
     if wc.is_excepted:
-        print('  Excepted!!')
-        report_exception(wc, tab='    ')
+        print(tab + 'Excepted!!')
+        report_exception(wc, tab=tab+'  ')
 
         if not on_excepted is None:
             on_excepted(wc)
-
-    print('-'*100)
 
 def void(*args, **kwargs):
     return
@@ -125,7 +125,9 @@ def analyze_FindCrossingsWorkChain(node, gap_thr=0.0025, noprint=False):
     res = {
         'min_gap':[],
         'pinned':[],
+        'pgaps':[],
         'found':[],
+        'fgaps':[],
         'distance':[]
         }
     for nn, bands in enumerate(lbands):
@@ -152,7 +154,7 @@ def analyze_FindCrossingsWorkChain(node, gap_thr=0.0025, noprint=False):
         kpt_tree = KDTree(kpt_c)
         query    = centers.query_ball_tree(kpt_tree, r=distance*1.74/2)
 
-        pinned_thr = distance * 3.75
+        pinned_thr = distance * 4.00
 
         lim = max(-5 // np.log10(distance), 1) if distance < 1 else 200
         if distance < 0.01:
@@ -165,15 +167,21 @@ def analyze_FindCrossingsWorkChain(node, gap_thr=0.0025, noprint=False):
             if len(q) == 0:
                 log('    skipping {}, no neighbours'.format(pinned[n]))
                 continue
-            _, i = kpt_tree.query(pinned[n])
-            prev_min_gap = g[i]
+
             mi =  g[q].argmin()
             min_gap = g[q[mi]]
-            log('    {:2d}.  min_gap: {:.6f}  kpt: {}  pmg: {:.6f}  kpt: {} {}'.format(n, min_gap, kpt_c[q][mi], prev_min_gap, kpt_c[i], pinned[n]))
-            if min_gap / prev_min_gap > 0.95 and distance < 0.005:
-                log('         skipping mg/pmg: {}'.format(min_gap / prev_min_gap))
-                continue
+
+            # _, i = kpt_tree.query(pinned[n])
+            # prev_min_gap = g[i]
+
+            # log('    {:2d}.  min_gap: {:.6f}  kpt: {}  pmg: {:.6f}  kpt: {} {}'.format(n, min_gap, kpt_c[q][mi], prev_min_gap, kpt_c[i], pinned[n]))
+            # if min_gap / prev_min_gap > 0.95 and distance < 0.005:
+            #     log('         skipping mg/pmg: {}'.format(min_gap / prev_min_gap))
+            #     continue
+            log('    {:2d}.  min_gap: {:.6f}  kpt: {}  pinned: {}'.format(n, min_gap, kpt_c[q][mi], pinned[n]))
             scale = 2.5 if lim > 1 else 1.0001
+            if distance == 200:
+                scale = 0.25 / min_gap
             app = None
             while app is None or len(app) > lim:
                 app = np.where(g[q] < min_gap * scale)[0]
@@ -209,7 +217,9 @@ def analyze_FindCrossingsWorkChain(node, gap_thr=0.0025, noprint=False):
 
         res['min_gap'].append(g.min())
         res['pinned'].append(kpt_c[wp])
+        res['pgaps'].append(g[wp])
         res['found'].append(kpt_c[wf])
+        res['fgaps'].append(g[wf])
         res['distance'].append(distance)
 
     return res
