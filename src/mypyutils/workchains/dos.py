@@ -24,14 +24,17 @@ class DosWorkChain(WorkChain):
         spec.expose_inputs(PwBaseWorkChain, namespace='scf',
             exclude=('clean_workdir', 'pw.structure'),
             namespace_options={'help': 'Inputs for the `PwBaseWorkChain` for the SCF calculation.'})
+        spec.expose_inputs(PwBaseWorkChain, namespace='nscf',
+            exclude=('clean_workdir', 'pw.structure'),
+            namespace_options={'help': 'Inputs for the `PwBaseWorkChain` for the NSCF calculation.'})
         spec.expose_inputs(DosCalc, namespace='dos',
             exclude=('parent_folder', ),
             namespace_options={'help': 'Inputs for the `DosCalculation` for the DOS calculation.'})
         spec.input('parent_folder', valid_type=orm.RemoteData, required=False)
         spec.input('structure', valid_type=orm.StructureData, help='The inputs structure.')
-        spec.input('kpoints_distance', valid_type=orm.Float, required=False,
-            help='The minimum desired distance in 1/Å between k-points in reciprocal space. The explicit k-points will '
-                 'be generated automatically by a calculation function based on the input structure.')
+        # spec.input('kpoints_distance', valid_type=orm.Float, required=False,
+        #     help='The minimum desired distance in 1/Å between k-points in reciprocal space. The explicit k-points will '
+        #          'be generated automatically by a calculation function based on the input structure.')
         spec.input('nbands_factor', valid_type=orm.Float, default=lambda: orm.Float(1.5),
             help='The number of bands for the BANDS calculation is that used for the SCF multiplied by this factor.')
         spec.input('clean_workdir', valid_type=orm.Bool, default=lambda: orm.Bool(False),
@@ -126,10 +129,10 @@ class DosWorkChain(WorkChain):
 
     def run_nscf(self):
         """Run the PwBaseWorkChain in nscf mode along the path of high-symmetry determined by seekpath."""
-        inputs = AttributeDict(self.exposed_inputs(PwBaseWorkChain, namespace='scf'))
+        inputs = AttributeDict(self.exposed_inputs(PwBaseWorkChain, namespace='nscf'))
         inputs.metadata.call_link_label = 'nscf'
-        inputs.pw.metadata.options.max_wallclock_seconds *= 4
-        inputs.kpoints_distance = self.inputs.kpoints_distance
+        # inputs.pw.metadata.options.max_wallclock_seconds *= 4
+        # inputs.kpoints_distance = self.inputs.kpoints_distance
         inputs.pw.structure = self.ctx.current_structure
         inputs.pw.parent_folder = self.ctx.current_folder
         inputs.pw.parameters = inputs.pw.parameters.get_dict()
@@ -141,8 +144,8 @@ class DosWorkChain(WorkChain):
         inputs.pw.parameters['CONTROL']['calculation'] = 'nscf'
 
         # Only set the following parameters if not directly explicitly defined in the inputs
-        inputs.pw.parameters['ELECTRONS'].setdefault('diagonalization', 'cg')
-        inputs.pw.parameters['ELECTRONS'].setdefault('diago_full_acc', True)
+        # inputs.pw.parameters['ELECTRONS'].setdefault('diagonalization', 'cg')
+        # inputs.pw.parameters['ELECTRONS'].setdefault('diago_full_acc', True)
 
         # If `nbands_factor` is defined in the inputs we set the `nbnd` parameter
         if 'nbands_factor' in self.inputs:
@@ -161,7 +164,7 @@ class DosWorkChain(WorkChain):
         inputs = prepare_process_inputs(PwBaseWorkChain, inputs)
         running = self.submit(PwBaseWorkChain, **inputs)
 
-        self.report('launching PwBaseWorkChain<{}> in {} mode'.format(running.pk, 'bands'))
+        self.report('launching PwBaseWorkChain<{}> in {} mode'.format(running.pk, 'nscf'))
 
         return ToContext(workchain_nscf=running)
 
