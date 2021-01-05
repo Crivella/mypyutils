@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Workchain to compute a band structure for a given structure using Quantum ESPRESSO pw.x."""
+"""Workchain to compute the DOS for a given structure using Quantum ESPRESSO pw.x."""
 from aiida import orm
 from aiida.common import AttributeDict
 from aiida.plugins import WorkflowFactory, CalculationFactory
