@@ -202,7 +202,7 @@ class DosWorkChain(WorkChain):
 
         if not workchain.is_finished_ok:
             self.report('DOS failed with exit status {}'.format(workchain.exit_status))
-            return self.exit_codes.ERROR_SUB_PROCESS_FAILED_BANDS
+            return self.exit_codes.ERROR_SUB_PROCESS_FAILED_DOS
 
         self.out('dos_parameters', workchain.outputs.output_parameters)
         self.out('output_dos', workchain.outputs.output_dos)

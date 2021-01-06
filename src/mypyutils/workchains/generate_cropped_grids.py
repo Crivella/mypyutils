@@ -103,106 +103,108 @@ def kpt_crop(
 
 	return res_kpt, res_weight
 
-multipliers = [1,3,5,7,9,15,21,27,35,45,63,75,81]
+# multipliers = [1,3,5,7,9,15,21,27,35,45,63,75,81]
 
-def generate_congruent_grids(mesh, max_i):
-	from scipy.spatial import KDTree
-	mesh = np.array(mesh)
-	done = None
-	for m in multipliers:
-		print()
-		print(m)
-		new = m*mesh
-		if any(i>max_i for i in new):
-			break
+# def generate_congruent_grids(mesh, max_i):
+# 	from scipy.spatial import KDTree
+# 	mesh = np.array(mesh)
+# 	done = None
+# 	for m in multipliers:
+# 		print()
+# 		print(m)
+# 		new = m*mesh
+# 		if any(i>max_i for i in new):
+# 			break
 
-		grid = generate_monkhorst_pack_grid(new)
-		if done is None:
-			done = grid
-			res = grid
-		else:
-			t = KDTree(done)
-			q = t.query_ball_point(grid, r=1E-5)
-			w = [i for i,l in enumerate(q) if len(l) == 0]
-			res = grid[w]
-			done = np.vstack((done, res))
-			# print('-----')
-			# print(q)
-			# print(w)
-			# print('-----')
-			# break
+# 		grid = generate_monkhorst_pack_grid(new)
+# 		if done is None:
+# 			done = grid
+# 			res = grid
+# 		else:
+# 			t = KDTree(done)
+# 			q = t.query_ball_point(grid, r=1E-5)
+# 			w = [i for i,l in enumerate(q) if len(l) == 0]
+# 			res = grid[w]
+# 			done = np.vstack((done, res))
+# 			# print('-----')
+# 			# print(q)
+# 			# print(w)
+# 			# print('-----')
+# 			# break
 
-		print(f'{len(grid)} -> {len(res)}')
-		yield res
-		# break
-cell = [
-	[0.0, 3.133592071, 3.133592071],
-	[3.133592071, 0.0, 3.133592071],
-	[3.133592071, 3.133592071, 0.0]]
+# 		print(f'{len(grid)} -> {len(res)}')
+# 		yield res
+# 		# break
 
-recipr = recipr_base(cell)
 
-v1,v2,v3 = recipr
-vol = np.dot(np.cross(v1,v2), v3)
+# cell = [
+# 	[0.0, 3.133592071, 3.133592071],
+# 	[3.133592071, 0.0, 3.133592071],
+# 	[3.133592071, 3.133592071, 0.0]]
 
-print(vol)
-d = 1E-2
-print('q =', vol**(1/3) /d)
+# recipr = recipr_base(cell)
 
-print(np.linalg.norm(cell, axis=1))
+# v1,v2,v3 = recipr
+# vol = np.dot(np.cross(v1,v2), v3)
 
-exit()
+# print(vol)
+# d = 1E-2
+# print('q =', vol**(1/3) /d)
 
-recipr = recipr_base(cell)
+# print(np.linalg.norm(cell, axis=1))
 
-for g in generate_congruent_grids([2,2,2], 30):
-	pass
-	# print(g)
-exit()
+# exit()
 
-# print(recipr)
-# kpt_cryst = generate_monkhorst_pack_grid([1,1,1])
-# print(kpt_cryst)
+# recipr = recipr_base(cell)
+
+# for g in generate_congruent_grids([2,2,2], 30):
+# 	pass
+# 	# print(g)
+# exit()
+
+# # print(recipr)
+# # kpt_cryst = generate_monkhorst_pack_grid([1,1,1])
+# # print(kpt_cryst)
+# # print()
+# kpt_cryst0 = generate_monkhorst_pack_grid([2,2,1])
+# print(kpt_cryst0)
 # print()
-kpt_cryst0 = generate_monkhorst_pack_grid([2,2,1])
-print(kpt_cryst0)
-print()
-t0 = KDTree(kpt_cryst0)
-# kpt_cryst = generate_monkhorst_pack_grid([3,3,1])
-# print(kpt_cryst)
+# t0 = KDTree(kpt_cryst0)
+# # kpt_cryst = generate_monkhorst_pack_grid([3,3,1])
+# # print(kpt_cryst)
+# # print()
+# # kpt_cryst = generate_monkhorst_pack_grid([4,4,1])
+# # print(kpt_cryst)
+# # print()
+# # kpt_cryst = generate_monkhorst_pack_grid([5,5,1])
+# # print(kpt_cryst)
+# # print()
+# kpt_cryst1 = generate_monkhorst_pack_grid([6,6,1])
+# t1 = KDTree(kpt_cryst1)
+# c = t0.query_ball_tree(t1, r = 1E-5)
+# print(all(len(_) for _ in c))
 # print()
-# kpt_cryst = generate_monkhorst_pack_grid([4,4,1])
-# print(kpt_cryst)
+
+# kpt_cryst2 = generate_monkhorst_pack_grid([18,18,1])
+# t2 = KDTree(kpt_cryst2)
+# c = t1.query_ball_tree(t2, r = 1E-5)
+# print(all(len(_) for _ in c))
 # print()
-# kpt_cryst = generate_monkhorst_pack_grid([5,5,1])
-# print(kpt_cryst)
+
+# kpt_cryst5 = generate_monkhorst_pack_grid([10,10,1])
+# t5 = KDTree(kpt_cryst5)
+# c = t0.query_ball_tree(t5, r = 1E-5)
+# print(all(len(_) for _ in c))
+# c = t1.query_ball_tree(t5, r = 1E-5)
+# print(all(len(_) for _ in c))
 # print()
-kpt_cryst1 = generate_monkhorst_pack_grid([6,6,1])
-t1 = KDTree(kpt_cryst1)
-c = t0.query_ball_tree(t1, r = 1E-5)
-print(all(len(_) for _ in c))
-print()
 
-kpt_cryst2 = generate_monkhorst_pack_grid([18,18,1])
-t2 = KDTree(kpt_cryst2)
-c = t1.query_ball_tree(t2, r = 1E-5)
-print(all(len(_) for _ in c))
-print()
+# print(factorize(1*2*2*2*3*4*5*7*11))
 
-kpt_cryst5 = generate_monkhorst_pack_grid([10,10,1])
-t5 = KDTree(kpt_cryst5)
-c = t0.query_ball_tree(t5, r = 1E-5)
-print(all(len(_) for _ in c))
-c = t1.query_ball_tree(t5, r = 1E-5)
-print(all(len(_) for _ in c))
-print()
+# # kpt_cryst = generate_monkhorst_pack_grid([7,7,1])
+# # print(kpt_cryst)
+# # print()
+# # kpt_cart = cryst_to_cart(recipr, kpt_cryst)
+# # print(kpt_cart)
 
-print(factorize(1*2*2*2*3*4*5*7*11))
-
-# kpt_cryst = generate_monkhorst_pack_grid([7,7,1])
-# print(kpt_cryst)
-# print()
-# kpt_cart = cryst_to_cart(recipr, kpt_cryst)
-# print(kpt_cart)
-
-# print(kpt_crop(kpt_cart, centers=[(0,0,0), (0.1,0,0)], radius=0.4))
+# # print(kpt_crop(kpt_cart, centers=[(0,0,0), (0.1,0,0)], radius=0.4))
