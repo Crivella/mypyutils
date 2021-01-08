@@ -44,31 +44,28 @@ def _kpt_crop(
 
 	kpt_coord  = np.array(kpt_coord)
 	kpt_cart   = kpt_coord.dot(recipr)
-	kpt_weight = np.array(kpt_weight)
 
 	n_kpt = kpt_cart.shape[0]
 	if kpt_weight is None:
 		kpt_weight = np.ones((n_kpt,))
+	else:
+		kpt_weight = np.array(kpt_weight)
 	kpt_weight /= kpt_weight.sum()
 
 	list_center = np.array(centers).reshape(-1,3)
 	index = set()
-	if not anticrop:
-		for center,radius in zip(list_center, radii):
-			norms  = np.linalg.norm(kpt_cart - center, axis=1)
+	for center,radius in zip(list_center, radii):
+		norms  = np.linalg.norm(kpt_cart - center, axis=1)
+
+		if not anticrop:
 			w = np.where(norms <= radius)[0]
-
 			index = index.union(set(w))
-	else:
-		for center,radius in zip(list_center, radii):
-			norms  = np.linalg.norm(app - center, axis=1)
+		else:
 			w = np.where(norms > radius)[0]
-
 			if not index:
 				index = index.union(set(w))
 			else:
 				index = index.intersection(set(w))
-
 
 	index = list(index)
 
@@ -89,7 +86,7 @@ def _kpt_crop(
 	# res_weight = self._normalize_weight(res_weight)
 
 	return res_kpt, res_weight
-
+	
 @calcfunction
 def kpt_crop(kpoints: orm.KpointsData, centers: orm.ArrayData, radii: orm.ArrayData, anticrop=orm.Bool(False)) -> orm.KpointsData:
 	kpt_cryst = kpoints.get_kpoints_mesh(print_list=True)
