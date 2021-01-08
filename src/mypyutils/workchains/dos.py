@@ -272,8 +272,11 @@ class DosWorkChain_cropped(WorkChain):
         spec.input('parent_folder', valid_type=orm.RemoteData, required=False)
         spec.input('structure', valid_type=orm.StructureData, help='The inputs structure.')
 
-        spec.input('nbands_factor', valid_type=orm.Float, default=lambda: orm.Float(1.5),
+        spec.input('nbands_factor_full', valid_type=orm.Float, default=lambda: orm.Float(1.5),
             help='The number of bands for the BANDS calculation is that used for the SCF multiplied by this factor.')
+        spec.input('nbands_factor_crop', valid_type=orm.Float, default=lambda: orm.Float(1.5),
+            help='The number of bands for the BANDS calculation is that used for the SCF multiplied by this factor.')
+
         spec.input('clean_workdir', valid_type=orm.Bool, default=lambda: orm.Bool(False),
             help='If `True`, work directories of all called calculation will be cleaned at the end of execution.')
 

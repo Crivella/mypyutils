@@ -11,58 +11,6 @@ from aiida.engine import calcfunction
 def recipr_base(base):
 	return np.linalg.inv(base).T * 2 * np.pi
 
-def cart_to_cryst(recipr, coord):
-	return coord.dot(np.linalg.inv(recipr))
-
-def cryst_to_cart(recipr, coord):
-	return coord.dot(recipr)
-
-def u(r, q):
-	return (2.*r - q - 1.), (2. * q)
-
-def factorize(x):
-	res = [1]
-	i = 2
-	while i <= x:
-		if x%i == 0:
-			res.append(i)
-			x /= i
-		else:
-			i += 1
-
-	return res
-
-def _generate_monkhorst_pack_grid(mesh, shift=(0,0,0)):
-	"""
-	Generate a Monkhorst-Pack grid of k-point.
-	Params:
-	 -mesh:  tuple of 3 ints > 0
-	 -shift: tuple of 3 ints that can be either 0 or 1
-	"""
-	from itertools import product
-
-	s1,s2,s3   = shift
-
-	l1,l2,l3 = [
-		list(
-			(n+shift[i])/d for n,d in 
-				(
-					u(r+1,q) for r in range(q)
-				)
-		) for i,q in enumerate(mesh)
-		]
-
-	kpts = np.array(list(product(l1,l2,l3)))
-
-	return kpts
-
-# @calcfunction
-# def generate_monkhorst_pack_grid(kpt_data: orm.KpointsData):
-# 	mesh, shift  = kpt_data.get_kpoints_mesh()
-# 	shift = kpt_data.get_array('shift')
-
-# 	kpts = _generate_monkhorst_pack_grid(mesh, shift)
-
 def _kpt_crop(
 	kpt_coord, recipr=np.diag([1,1,1]), kpt_weight=None,
 	centers=[], radii=np.inf,
@@ -98,21 +46,29 @@ def _kpt_crop(
 	kpt_cart   = kpt_coord.dot(recipr)
 	kpt_weight = np.array(kpt_weight)
 
-	n_kpt = kpt_cart.shape
+	n_kpt = kpt_cart.shape[0]
 	if kpt_weight is None:
 		kpt_weight = np.ones((n_kpt,))
 	kpt_weight /= kpt_weight.sum()
 
 	list_center = np.array(centers).reshape(-1,3)
 	index = set()
-	for center,radius in zip(list_center, radii):
-		norms  = np.linalg.norm(kpt_cart - center, axis=1)
-		if anticrop:
-			w = np.where(norms > radius)[0]
-		else:
+	if not anticrop:
+		for center,radius in zip(list_center, radii):
+			norms  = np.linalg.norm(kpt_cart - center, axis=1)
 			w = np.where(norms <= radius)[0]
 
-		index = index.union(set(w))
+			index = index.union(set(w))
+	else:
+		for center,radius in zip(list_center, radii):
+			norms  = np.linalg.norm(app - center, axis=1)
+			w = np.where(norms > radius)[0]
+
+			if not index:
+				index = index.union(set(w))
+			else:
+				index = index.intersection(set(w))
+
 
 	index = list(index)
 
@@ -135,7 +91,7 @@ def _kpt_crop(
 	return res_kpt, res_weight
 
 @calcfunction
-def kpt_crop(kpoints: orm.KpointsData, centers: orm.ArrayData, radii: orm.ArrayData, anticrop: orm.Bool) -> orm.KpointsData:
+def kpt_crop(kpoints: orm.KpointsData, centers: orm.ArrayData, radii: orm.ArrayData, anticrop=orm.Bool(False)) -> orm.KpointsData:
 	kpt_cryst = kpoints.get_kpoints_mesh(print_list=True)
 	cell = kpoints.cell
 	recipr = recipr_base(cell)
