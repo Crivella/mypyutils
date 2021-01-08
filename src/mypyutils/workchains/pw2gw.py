@@ -202,8 +202,8 @@ class Pw2gwWorkChain(WorkChain):
         workchain = self.ctx.workchain_pw2gw
 
         if not workchain.is_finished_ok:
-            self.report('DOS failed with exit status {}'.format(workchain.exit_status))
-            return self.exit_codes.ERROR_SUB_PROCESS_FAILED_BANDS
+            self.report('PW2GW failed with exit status {}'.format(workchain.exit_status))
+            return self.exit_codes.ERROR_SUB_PROCESS_FAILED_PW2GW
 
         self.out('pw2gw_parameters', workchain.outputs.output_parameters)
         self.out('eps', workchain.outputs.eps)
