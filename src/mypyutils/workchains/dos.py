@@ -351,8 +351,8 @@ class DosWorkChain_cropped(WorkChain):
 
     def validate_crop_inputs(self):
         """Validate the input nodes for the cropping."""
-        crop_radii   = self.inputs.crop_radii.get_array('crop_radii')
-        crop_centers = self.inputs.crop_centers.get_array('crop_centers')
+        crop_radii   = self.inputs.crop_radii.get_array('radii')
+        crop_centers = self.inputs.crop_centers.get_array('centers')
 
         if len(crop_radii) != len(crop_centers):
             self.report('`crop_centers` and `crop_radii` should be contain the same amount of elements.')
@@ -406,9 +406,9 @@ class DosWorkChain_cropped(WorkChain):
     def prepare_kgrids(self):
         """Generate the complementary kpoints grids (FULL - CROP) & CROP"""
         inputs = {
-            'structure': self.inputs.pw.structure,
+            'structure': self.ctx.current_structure,
             # 'distance': self.inputs.kpoints_distance,
-            'force_parity': self.inputs.get('kpoints_force_parity', orm.Bool(False)),
+            'force_parity': orm.Bool(False),
             'metadata': {'call_link_label': 'create_kpoints_from_distance'}
         }
         inputs['distance'] = self.inputs.nscf_full.kpoints_distance
