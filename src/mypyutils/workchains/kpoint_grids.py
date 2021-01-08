@@ -114,13 +114,13 @@ def mergeXyData(data1, data2, weight1, weight2) -> orm.XyData:
 	if isinstance(weight1, orm.Float):
 		W1 = weight1.value
 	elif isinstance(weight1, orm.KpointsData):
-		W1 = weight1.get_array('weights')
+		W1 = weight1.get_array('weights').sum()
 	else:
 		raise TypeError('`weight1` is of unsupported type {}'.format(type(weight1)))
 	if isinstance(weight2, orm.Float):
 		W2 = weight2.value
 	elif isinstance(weight2, orm.KpointsData):
-		W2 = weight2.get_array('weights')
+		W2 = weight2.get_array('weights').sum()
 	else:
 		raise TypeError('`weight2` is of unsupported type {}'.format(type(weight1)))
 
@@ -132,25 +132,26 @@ def mergeXyData(data1, data2, weight1, weight2) -> orm.XyData:
 	X1 = x1[1]
 	X2 = x2[1]
 
+
 	y1 = data1.get_y()
 	y2 = data2.get_y()
 
 	x_min = min(X1.min(), X2.min())
 	x_max = max(X1.max(), X2.max())
-	dx = min(x1[1] - x1[0], x2[1] - x2[0])
+	dx = min(X1[1] - X1[0], X2[1] - X2[0])
 
 	names = []
 	units = []
 	ly1 = []
 	ly2 = []
-	for name, data, units in y1:
+	for name, data, unit in y1:
 		for n2, d2, u2 in y2:
 			if n2 == name:
-				if units != u2:
+				if unit != u2:
 					raise ValueError('Mismatch in Y Axis. Units `{}` != `{}` for array `{}`'.format(
-						units, u2, name))
+						unit, u2, name))
 				names.append(name)
-				units.append(units)
+				units.append(unit)
 				ly1.append(data)
 				ly2.append(d2)
 				break
@@ -169,7 +170,7 @@ def mergeXyData(data1, data2, weight1, weight2) -> orm.XyData:
 
 		resYdata.append(newY)
 		resYnames.append(name)
-		resYunits.append(units)
+		resYunits.append(unit)
 
 	res = orm.XyData()
 
