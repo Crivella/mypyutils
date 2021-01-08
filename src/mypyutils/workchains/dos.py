@@ -416,8 +416,8 @@ class DosWorkChain_cropped(WorkChain):
         inputs['distance'] = self.inputs.nscf_crop.kpoints_distance
         k_crop = create_kpoints_from_distance(**inputs)
 
-        self.ctx.kpoint_full = kpt_crop(k_full, self.inputs.crop_centers, self.inputs.crop_radii)
-        self.ctx.kpoint_crop = kpt_crop(k_crop, self.inputs.crop_centers, self.inputs.crop_radii)
+        self.ctx.kpoint_full = kpt_crop(k_full, self.inputs.crop_centers, self.inputs.crop_radii, orm.Bool(True))
+        self.ctx.kpoint_crop = kpt_crop(k_crop, self.inputs.crop_centers, self.inputs.crop_radii, orm.Bool(False))
         self.ctx.kpoint_full_weight = self.ctx.kpoint_full #.get_array('weights').sum()
         self.ctx.kpoint_crop_weight = self.ctx.kpoint_crop #.get_array('weights').sum()
 

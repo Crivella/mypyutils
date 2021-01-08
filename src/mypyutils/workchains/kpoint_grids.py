@@ -86,9 +86,9 @@ def _kpt_crop(
 	# res_weight = self._normalize_weight(res_weight)
 
 	return res_kpt, res_weight
-	
+
 @calcfunction
-def kpt_crop(kpoints: orm.KpointsData, centers: orm.ArrayData, radii: orm.ArrayData, anticrop=orm.Bool(False)) -> orm.KpointsData:
+def kpt_crop(kpoints: orm.KpointsData, centers: orm.ArrayData, radii: orm.ArrayData, anticrop: orm.Bool) -> orm.KpointsData:
 	kpt_cryst = kpoints.get_kpoints_mesh(print_list=True)
 	cell = kpoints.cell
 	recipr = recipr_base(cell)
