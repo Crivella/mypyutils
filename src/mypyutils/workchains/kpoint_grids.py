@@ -164,8 +164,8 @@ def mergeXyData(data1, data2, weight1, weight2) -> orm.XyData:
 	resYnames = []
 	resYunits = []
 	for Y1, Y2, name, unit in zip(ly1, ly2, names, units):
-		newY1 = scipy.interpolate.interp1d(X1, Y1, fill_value=0)(resX)
-		newY2 = scipy.interpolate.interp1d(X2, Y2, fill_value=0)(resX)
+		newY1 = scipy.interpolate.interp1d(X1, Y1, bounds_error=False, fill_value=0)(resX)
+		newY2 = scipy.interpolate.interp1d(X2, Y2, bounds_error=False, fill_value=0)(resX)
 
 		newY = W1 * newY1 + W2 * newY2
 
