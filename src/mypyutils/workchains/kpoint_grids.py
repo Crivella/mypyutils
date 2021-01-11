@@ -1,5 +1,6 @@
 import numpy as np
 import scipy
+import scipy.interpolate
 # from scipy.spatial import KDTree
 from aiida import orm
 # from aiida.common import AttributeDict
