@@ -416,16 +416,25 @@ class DosWorkChain_cropped(WorkChain):
         inputs['distance'] = self.inputs.nscf_crop.kpoints_distance
         k_crop = create_kpoints_from_distance(**inputs)
 
+        nk_full = len(k_full.get_kpoints_mesh(print_list=True))
+        nk_crop = len(k_crop.get_kpoints_mesh(print_list=True))
         self.ctx.kpoint_full = kpt_crop(k_full, self.inputs.crop_centers, self.inputs.crop_radii, orm.Bool(True))
         self.ctx.kpoint_crop = kpt_crop(k_crop, self.inputs.crop_centers, self.inputs.crop_radii, orm.Bool(False))
-        self.ctx.kpoint_full_weight = self.ctx.kpoint_full #.get_array('weights').sum()
-        self.ctx.kpoint_crop_weight = self.ctx.kpoint_crop #.get_array('weights').sum()
+        self.ctx.kpoint_full_weight = self.ctx.kpoint_full
+        self.ctx.kpoint_crop_weight = self.ctx.kpoint_crop
+        nka_full = len(self.ctx.kpoint_full.get_kpoints())
+        nka_crop = len(self.ctx.kpoint_crop.get_kpoints())
+        nka_full_weight = self.ctx.kpoint_full.get_array('weights').sum()
+        nka_crop_weight = self.ctx.kpoint_crop.get_array('weights').sum()
+        self.report('{}/{} k-points anti-cropped from FULL grid. tot_weight={}'.format(nka_full, nk_full, nka_full_weight))
+        self.report('{}/{} k-points cropped from CROP grid. tot_weight={}'.format(nka_crop, nk_crop, nka_crop_weight))
 
         self.out('kpoints_full', self.ctx.kpoint_full)
         self.out('kpoints_crop', self.ctx.kpoint_crop)
 
     def should_do_full(self):
         if 'override_dos' in self.inputs:
+            self.report('overriding FULL-CROP grid. Using DOS <{}> instead.'.format(self.inputs.override_dos.pk))
             self.ctx.dos_full = self.inputs.override_dos
             if 'override_dos_weight' in self.inputs:
                 self.ctx.kpoint_full_weight = self.inputs.override_dos_weight
