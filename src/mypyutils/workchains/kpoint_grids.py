@@ -95,6 +95,7 @@ def kpt_crop(kpoints: orm.KpointsData, centers: orm.ArrayData, radii: orm.ArrayD
 	recipr = recipr_base(cell)
 
 	centers = centers.get_array('centers')
+	centers = centers.dot(recipr)
 	radii   = radii.get_array('radii')
 
 	kpt, wgt = _kpt_crop(kpt_cryst, recipr, centers=centers, radii=radii, anticrop=anticrop.value)
