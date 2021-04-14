@@ -291,3 +291,64 @@ def _make_supercell(structure, supercell):
                 )
 
     return new
+
+def plot_bandstructure(bs_node, dy=None, savedir='.'):
+    import os
+    import matplotlib.pyplot as plt
+
+    try:
+        data   = bs_node.outputs.band_structure
+    except:
+        print('WARNING! No output from', bs_node)
+        return
+    else:
+        print('Doing bs_node: {}, bands: {}'.format(bs_node.pk, data.pk))
+    # continue
+    struct = bs_node.inputs.structure
+    param  = bs_node.outputs.scf_parameters.get_dict()
+    ef     = param['fermi_energy']
+
+    plot_info = data._get_bandplot_data(cartesian=True, prettify_format='gnuplot_seekpath', join_symbol='|', y_origin=ef)
+
+    x = np.array(plot_info['x'])
+    y = np.array(plot_info['y'])
+
+    if dy:
+        ymin = -dy
+        ymax = dy
+    else:
+        ymin = y.min()
+        ymax = y.max()
+
+    labels = plot_info['labels']
+
+    tpos = [_[0] for _ in labels]
+    tlab = [_[1] for _ in labels]
+    tlab = [fr'${_}$' for _ in tlab if _]
+
+    formula = struct.get_formula()
+    fname = os.path.join(savedir, '{}-{}.pdf'.format(bs_node.pk, formula))
+
+    for i in '0123456789':
+        formula = formula.replace(i, fr'$_{i}$')
+
+    fig, ax = plt.subplots()
+
+    xmin, xmax = x.min(), x.max()
+    ax.plot(x, y, color='k', linewidth=.5)
+    ax.hlines([0],xmin, xmax, linestyles='dashed', color='cyan')
+    ax.vlines(tpos, ymin, ymax, linestyles='dashed', color='gray')
+
+    ax.set_title('{}  -  {}'.format(formula, data.pk))
+    # ax.set_title('{}'.format(formula))
+    ax.set_xlim([xmin, xmax])
+    ax.set_ylim([ymin, ymax])
+    ax.set_xticks(tpos)
+    if tlab:
+        ax.set_xticklabels(tlab)
+    ax.set_ylabel('Energy (eV)')
+    
+    # pdf.savefig(fig)
+    plt.savefig(fname)
+    plt.close(fig)
+    # break
