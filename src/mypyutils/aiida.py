@@ -292,7 +292,7 @@ def _make_supercell(structure, supercell):
 
     return new
 
-def plot_bandstructure(bs_node, dy=None, savedir='.'):
+def plot_bandstructure(bs_node, dy=None, savedir='.', formula=None):
     import os
     import matplotlib.pyplot as plt
 
@@ -326,7 +326,8 @@ def plot_bandstructure(bs_node, dy=None, savedir='.'):
     tlab = [_[1] for _ in labels]
     tlab = [fr'${_}$' if '$' not in _ else _ for _ in tlab if _]
 
-    formula = struct.get_formula()
+    if formula is None:
+        formula = struct.get_formula()
     fname = os.path.join(savedir, '{}-{}.pdf'.format(bs_node.pk, formula))
 
     for i in '0123456789':
