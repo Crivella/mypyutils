@@ -292,7 +292,11 @@ def _make_supercell(structure, supercell):
 
     return new
 
-def plot_bandstructure(bs_node, dy=None, savedir='.', formula=None, skip_done=False):
+def plot_bandstructure(
+    bs_node, dy=None,
+    skip_done=False,
+    savedir='.', formula=None, save_dat=False,
+    ):
     import os
     import matplotlib.pyplot as plt
 
@@ -311,13 +315,19 @@ def plot_bandstructure(bs_node, dy=None, savedir='.', formula=None, skip_done=Fa
     if formula is None:
         formula = struct.get_formula()
     fname = os.path.join(savedir, '{}-{}.pdf'.format(bs_node.pk, formula))
-    if skip_done and os.path.exists(fname):
-        return
 
     plot_info = data._get_bandplot_data(cartesian=True, prettify_format='gnuplot_seekpath', join_symbol='|', y_origin=ef)
 
     x = np.array(plot_info['x'])
     y = np.array(plot_info['y'])
+
+    if save_dat:
+        res = np.hstack((x.reshape(-1,1), y))
+        dat_fname = fname.replace('.pdf', '.dat')
+        np.savetxt(dat_fname, res)
+
+    if skip_done and os.path.exists(fname):
+        return
 
     if dy:
         ymin = -dy
