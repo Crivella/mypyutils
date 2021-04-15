@@ -292,7 +292,7 @@ def _make_supercell(structure, supercell):
 
     return new
 
-def plot_bandstructure(bs_node, dy=None, savedir='.', formula=None):
+def plot_bandstructure(bs_node, dy=None, savedir='.', formula=None, skip_done=False):
     import os
     import matplotlib.pyplot as plt
 
@@ -307,6 +307,12 @@ def plot_bandstructure(bs_node, dy=None, savedir='.', formula=None):
     struct = bs_node.inputs.structure
     param  = bs_node.outputs.scf_parameters.get_dict()
     ef     = param['fermi_energy']
+
+    if formula is None:
+        formula = struct.get_formula()
+    fname = os.path.join(savedir, '{}-{}.pdf'.format(bs_node.pk, formula))
+    if skip_done and os.path.exists(fname):
+        return
 
     plot_info = data._get_bandplot_data(cartesian=True, prettify_format='gnuplot_seekpath', join_symbol='|', y_origin=ef)
 
@@ -326,9 +332,6 @@ def plot_bandstructure(bs_node, dy=None, savedir='.', formula=None):
     tlab = [_[1] for _ in labels]
     tlab = [fr'${_}$' if '$' not in _ else _ for _ in tlab if _]
 
-    if formula is None:
-        formula = struct.get_formula()
-    fname = os.path.join(savedir, '{}-{}.pdf'.format(bs_node.pk, formula))
 
     for i in '0123456789':
         formula = formula.replace(i, fr'$_{i}$')
