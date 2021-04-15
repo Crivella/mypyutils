@@ -324,7 +324,7 @@ def plot_bandstructure(bs_node, dy=None, savedir='.'):
 
     tpos = [_[0] for _ in labels]
     tlab = [_[1] for _ in labels]
-    tlab = [fr'${_}$' for _ in tlab if _]
+    tlab = [fr'${_}$' if '$' not in _ else _ for _ in tlab if _]
 
     formula = struct.get_formula()
     fname = os.path.join(savedir, '{}-{}.pdf'.format(bs_node.pk, formula))
