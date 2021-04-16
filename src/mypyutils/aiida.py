@@ -293,28 +293,41 @@ def _make_supercell(structure, supercell):
     return new
 
 def plot_bandstructure(
-    bs_node, dy=None,
+    node, dy=None,
     skip_done=False,
-    savedir='.', formula=None, save_dat=False,
+    savedir='.', formula='', save_dat=False,
     ):
     import os
     import matplotlib.pyplot as plt
 
-    try:
-        data   = bs_node.outputs.band_structure
-    except:
-        print('WARNING! No output from', bs_node)
-        return
+    struct = None
+    param = None
+    if isinstance(node, orm.BandsData):
+        data = node
+    elif isinstance(node, orm.WorkChainNode):
+        pname = node.process_class.__name__
+        if pname == 'PwBandsWorkChain':
+            data = node.outputs.band_structure
+            struct = node.inputs.structure
+            param  = node.outputs.scf_parameters.get_dict()
+        elif pname == 'Wannier90BandsWorkChain':
+            data = node.outputs.wannier90_interpolated_bands
+            struct = node.inputs.structure
+            param  = node.outputs.scf_parameters.get_dict()
+        else:
+            raise NotImplemented
     else:
-        print('Doing bs_node: {}, bands: {}'.format(bs_node.pk, data.pk))
-    # continue
-    struct = bs_node.inputs.structure
-    param  = bs_node.outputs.scf_parameters.get_dict()
-    ef     = param['fermi_energy']
+        raise NotImplemented
 
-    if formula is None:
+    print('Doing node: {}, bands: {}'.format(node.pk, data.pk))
+
+    ef = 0
+    if param:
+        ef = param['fermi_energy']
+
+    if not formula and struct:
         formula = struct.get_formula()
-    fname = os.path.join(savedir, '{}-{}.pdf'.format(bs_node.pk, formula))
+    fname = os.path.join(savedir, '{}-{}.pdf'.format(node.pk, formula))
 
     plot_info = data._get_bandplot_data(cartesian=True, prettify_format='gnuplot_seekpath', join_symbol='|', y_origin=ef)
 
