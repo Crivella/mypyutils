@@ -5,6 +5,8 @@ from aiida.engine import WorkChain, ToContext
 
 from aiida_quantumespresso.utils.mapping import prepare_process_inputs
 
+from ..aiida import ListInputs_to_dict
+
 PwBaseWorkChain = WorkflowFactory('quantumespresso.pw.base')
 PpCalculation   = CalculationFactory('quantumespresso.pp')
 
@@ -63,10 +65,7 @@ class PPwfcWorkChain(WorkChain):
             help='The output parameters of the NSCF `PwBaseWorkChain`.')
         spec.output('pp_parameters', valid_type=orm.Dict,
             help='The output parameters of the `PpCalculation`.')
-        spec.output('pp_retrieved', valid_type=orm.FolderData,
-            help='The retrieved folder of the `PpCalculation`.')
-        spec.output('pp_data', valid_type=orm.ArrayData,
-            help='The output_data node of the `PpCalculation`.')
+        spec.output_namespace('wfc_data', valid_type=orm.ArrayData, dynamic=True)
         # yapf: enable
 
 
@@ -213,9 +212,10 @@ class PPwfcWorkChain(WorkChain):
         self.report('workchain succesfully completed')
         self.out('scf_parameters', self.ctx.workchain_scf.outputs.output_parameters)
         self.out('nscf_parameters', self.ctx.workchain_nscf.outputs.output_parameters)
-        self.out('pp_parameters', self.ctx.workchain_pp.outputs.output_parameter)
-        self.out('pp_retrieved', self.ctx.workchain_pp.outputs.retrieved)
-        self.out('pp_data', self.ctx.workchain_pp.outputs.output_data)
+
+        output_dct = ListInputs_to_dict(self.ctx.workchain_pp.outputs)
+        self.out('pp_parameters', output_dct['output_parameters'])
+        self.out('wfc_data', output_dct['output_data_multiple'])
 
     def on_terminated(self):
         """Clean the working directories of all child calculations if `clean_workdir=True` in the inputs."""
