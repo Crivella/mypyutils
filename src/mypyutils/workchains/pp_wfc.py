@@ -103,8 +103,8 @@ class PPwfcWorkChain(WorkChain):
 
     def run_nscf(self):
         """Run the PwBaseWorkChain in bands mode along the path of high-symmetry determined by seekpath."""
-        inputs = AttributeDict(self.exposed_inputs(PwBaseWorkChain, namespace='bands'))
-        inputs.metadata.call_link_label = 'bands'
+        inputs = AttributeDict(self.exposed_inputs(PwBaseWorkChain, namespace='nscf'))
+        inputs.metadata.call_link_label = 'nscf'
         inputs.kpoints = self.ctx.bands_kpoints
         inputs.pw.structure = self.ctx.current_structure
         inputs.pw.parent_folder = self.ctx.current_folder
@@ -114,7 +114,7 @@ class PPwfcWorkChain(WorkChain):
         inputs.pw.parameters.setdefault('ELECTRONS', {})
 
         # The following flags always have to be set in the parameters, regardless of what caller specified in the inputs
-        inputs.pw.parameters['CONTROL']['calculation'] = 'bands'
+        inputs.pw.parameters['CONTROL']['calculation'] = 'nscf'
 
         # Only set the following parameters if not directly explicitly defined in the inputs
         inputs.pw.parameters['ELECTRONS'].setdefault('diagonalization', 'cg')
@@ -135,6 +135,7 @@ class PPwfcWorkChain(WorkChain):
             int(0.5 * nelectron * nspin_factor) + 4 * nspin_factor, nbands
         )
         inputs.pw.parameters['SYSTEM']['nbnd'] = nbnd
+        inputs.pw.parameters['SYSTEM']['nosym'] = True
 
         inputs = prepare_process_inputs(PwBaseWorkChain, inputs)
         running = self.submit(PwBaseWorkChain, **inputs)
@@ -161,6 +162,7 @@ class PPwfcWorkChain(WorkChain):
 
         nscf_params = self.ctx.workchain_nscf.outputs.output_parameters
 
+        inputs.parameters = inputs.parameters.get_dict()
         inputs.parameters.setdefault('INPUTPP', {})
         inputs.parameters.setdefault('PLOT', {})
         inputs.parameters['INPUTPP']['plot_num'] = 7
@@ -189,7 +191,7 @@ class PPwfcWorkChain(WorkChain):
         inputs.parameters['INPUTPP']['kpoint(2)'] = nscf_params['number_of_k_points']
 
         inputs.parameters['PLOT']['iflag'] = 3
-        inputs.parameters['PLOT']['output_format'] = 5
+        # inputs.parameters['PLOT']['output_format'] = 5
 
         inputs = prepare_process_inputs(PpCalculation, inputs)
         running = self.submit(PpCalculation, **inputs)
