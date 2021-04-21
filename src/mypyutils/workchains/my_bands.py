@@ -17,11 +17,11 @@ def validate_inputs(inputs, ctx=None):  # pylint: disable=unused-argument
     # pylint: disable=no-member
 
     if 'nbands_factor' in inputs and 'nbnd' in inputs['bands']['pw']['parameters'].get_attribute('SYSTEM', {}):
-        return PwBandsWorkChain.exit_codes.ERROR_INVALID_INPUT_NUMBER_OF_BANDS.message
+        return MyPwBandsWorkChain.exit_codes.ERROR_INVALID_INPUT_NUMBER_OF_BANDS.message
 
     # Cannot specify both `bands_kpoints` and `bands_kpoints_distance`
     if all([key in inputs for key in ['bands_kpoints', 'bands_kpoints_distance']]):
-        return PwBandsWorkChain.exit_codes.ERROR_INVALID_INPUT_KPOINTS.message
+        return MyPwBandsWorkChain.exit_codes.ERROR_INVALID_INPUT_KPOINTS.message
 
 
 class MyPwBandsWorkChain(WorkChain):
