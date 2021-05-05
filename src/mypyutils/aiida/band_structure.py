@@ -7,7 +7,7 @@ from aiida import orm
 def plot_bandstructure(
     node, dy=None,
     skip_done=False,
-    savedir='.', formula='', save_dat=False,
+    savedir='.', ext='pdf', formula='', save_dat=False,
     ):
     struct = None
     param = None
@@ -36,7 +36,7 @@ def plot_bandstructure(
 
     if not formula and struct:
         formula = struct.get_formula()
-    fname = os.path.join(savedir, '{}-{}.pdf'.format(node.pk, formula))
+    fname = os.path.join(savedir, '{}-{}.{}'.format(node.pk, formula, ext))
 
     plot_info = data._get_bandplot_data(cartesian=True, prettify_format='gnuplot_seekpath', join_symbol='|', y_origin=ef)
 
@@ -45,7 +45,7 @@ def plot_bandstructure(
 
     if save_dat:
         res = np.hstack((x.reshape(-1,1), y))
-        dat_fname = fname.replace('.pdf', '.dat')
+        dat_fname = fname.replace(f'.{ext}', '.dat')
         np.savetxt(dat_fname, res)
 
     if skip_done and os.path.exists(fname):
