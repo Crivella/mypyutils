@@ -36,6 +36,7 @@ def plot_bandstructure(
 
     if not formula and struct:
         formula = struct.get_formula()
+    os.makedirs(savedir, exist_ok=True)
     fname = os.path.join(savedir, '{}-{}.{}'.format(node.pk, formula, ext))
 
     plot_info = data._get_bandplot_data(cartesian=True, prettify_format='gnuplot_seekpath', join_symbol='|', y_origin=ef)
