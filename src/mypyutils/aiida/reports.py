@@ -43,4 +43,4 @@ def analyze_workchain(
 
     print(tab + 'still running')
     if not on_running is None:
-        on_running(wc)
+        return on_running(wc)
