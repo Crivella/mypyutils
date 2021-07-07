@@ -5,9 +5,13 @@ import matplotlib.pyplot as plt
 from aiida import orm
 
 def plot_bandstructure(
-    node, dy=None,
+    node, 
+    ax=None,
+    dy=None,
     skip_done=False,
-    savedir='.', ext='pdf', formula='', save_dat=False,
+    save=True, savedir='.', ext='pdf', formula='', save_dat=False,
+    plot_kwargs={},
+    # line_kwargs={}
     ):
     struct = None
     param = None
@@ -50,7 +54,7 @@ def plot_bandstructure(
         np.savetxt(dat_fname, res)
 
     if skip_done and os.path.exists(fname):
-        return
+        return x,y
 
     if dy:
         ymin = -dy
@@ -69,10 +73,16 @@ def plot_bandstructure(
     for i in '0123456789':
         formula = formula.replace(i, fr'$_{i}$')
 
-    fig, ax = plt.subplots()
+    newax = False
+    if ax is None:
+        fig, ax = plt.subplots()
+        newax = True
+
+    plot_kwargs.setdefault('color', 'k')
+    plot_kwargs.setdefault('linewidth', .5)
 
     xmin, xmax = x.min(), x.max()
-    ax.plot(x, y, color='k', linewidth=.5)
+    line = ax.plot(x, y, **plot_kwargs)
     ax.hlines([0],xmin, xmax, linestyles='dashed', color='cyan')
     ax.vlines(tpos, ymin, ymax, linestyles='dashed', color='gray')
 
@@ -86,6 +96,9 @@ def plot_bandstructure(
     ax.set_ylabel('Energy (eV)')
     
     # pdf.savefig(fig)
-    plt.savefig(fname)
-    plt.close(fig)
-    # break
+    if save:
+        plt.savefig(fname)
+    if newax:
+        plt.close(fig)
+    
+    return x, y, line
