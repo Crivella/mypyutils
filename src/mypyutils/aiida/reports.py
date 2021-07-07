@@ -1,11 +1,11 @@
-from .utils import report_failed, report_exception, validate_node
+from .utils import report_failed, report_exception, report_running, validate_node
 
 def analyze_workchain(
     node,
     report_actions={},
     # **kwargs
     on_killed=None,
-    on_running=None,
+    on_running=report_running,
     on_finished_ok=None,
     on_failed=None,
     on_excepted=None,
