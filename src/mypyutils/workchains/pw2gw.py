@@ -65,9 +65,9 @@ class Pw2gwWorkChain(WorkChain):
         spec.exit_code(405, 'ERROR_SUB_PROCESS_FAILED_PW2GW',
             message='The pw2gw Pw2gwCalculation sub process failed')
 
-        spec.output('scf_remote_folder', valid_type=orm.RemoteData)
+        spec.output('scf_remote_folder', valid_type=orm.RemoteData, required=False)
         spec.output('nscf_remote_folder', valid_type=orm.RemoteData)
-        spec.output('scf_parameters', valid_type=orm.Dict,
+        spec.output('scf_parameters', valid_type=orm.Dict, required=False,
             help='The output parameters of the SCF `PwBaseWorkChain`.')
         spec.output('nscf_parameters', valid_type=orm.Dict,
             help='The output parameters of the NSCF `PwBaseWorkChain`.')
