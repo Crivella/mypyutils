@@ -51,7 +51,7 @@ def plot_bandstructure(
     if save_dat:
         res = np.hstack((x.reshape(-1,1), y))
         dat_fname = fname.replace(f'.{ext}', '.dat')
-        np.savetxt(dat_fname, res)
+        np.savetxt(dat_fname, res, header=f'Fermi = {ef}')
 
     if skip_done and os.path.exists(fname):
         return x,y
