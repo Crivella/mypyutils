@@ -2,7 +2,9 @@ import numpy as np
 from scipy.spatial import KDTree
 
 from .utils import validate_node
-from qepppy.utils import recipr_base
+
+def recipr_base(base):
+    return np.linalg.inv(base).T * 2 * np.pi
 
 def void(*args, **kwargs):
     return
