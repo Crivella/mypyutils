@@ -1,0 +1,117 @@
+import re
+
+import numpy as np
+from aiida import orm
+from aiida.engine import calcfunction
+
+from .utils import get_cell_params, identify_bravais
+
+
+@calcfunction
+def generate_2D_band_path(structure: orm.StructureData, kpt_dist: orm.Float) -> orm.KpointsData:
+    if not isinstance(structure, orm.StructureData):
+        raise ValueError
+    if not isinstance(kpt_dist, orm.Float):
+        raise ValueError
+
+    dk   = kpt_dist.value
+    cell = np.array(structure.cell)
+
+    bravais = identify_bravais(structure)
+    adir = re.search(r'adir(\d)', bravais)
+    if adir:
+        adir = int(adir.group(1))
+    ldir = re.search(r'ldir(\d+)', bravais)
+    if ldir:
+        ldir = int(ldir.group(1))
+
+    extrema = []
+    if 'hexagonal' in bravais:
+        angle = int(re.search(r'(\d+)deg', bravais).group(1))
+        if angle == 60:
+            extrema.append(('gG',  [0,   0,    0]))
+            extrema.append(('K',   [2/3, 1/3,  0]))
+            extrema.append(('M',   [1/2, 0,    0]))
+            extrema.append(('gG',  [0,   0,    0]))
+            extrema.append(('K\'', [1/3, -1/3, 0]))
+        elif angle == 120:
+            extrema.append(('gG',  [0,   0,    0]))
+            extrema.append(('K',   [1/3, 1/3,  0]))
+            extrema.append(('M',   [1/2, 0,    0]))
+            extrema.append(('gG',  [0,   0,    0]))
+            extrema.append(('K\'', [2/3, -1/3, 0]))
+        else:
+            raise NotImplementedError
+    elif 'tetragonal' in bravais:
+        extrema.append(('gG', [0,   0,    0]))
+        extrema.append(('X',  [1/2, 0,    0]))
+        extrema.append(('M',  [1/2, 1/2,  0]))
+        extrema.append(('gG', [0,   0,    0]))
+    elif 'orthorhombic' in bravais:
+        extrema.append(('gG', [0,   0,    0]))
+        extrema.append(('X',  [1/2, 0,    0]))
+        extrema.append(('S',  [1/2, 1/2,  0]))
+        extrema.append(('gG', [0,   0,    0]))
+        extrema.append(('Y',  [0,   1/2,  0]))
+        if ldir == 12:
+            pass
+        else:
+            raise NotImplementedError
+    elif 'monoclinic' in bravais:
+        a = None
+        if adir == 2:
+            if ldir == 12:
+                a,b,c, alpha, beta, gamma = get_cell_params(cell)
+
+        if a is None:
+            raise NotImplementedError
+
+        g = np.deg2rad(gamma if gamma < 90 else 180 - gamma)
+        n = (1 - a/b*np.cos(g)) / (2* np.sin(g)**2)
+        v = 1/2 - n * b/a * np.cos(g)
+
+        extrema.append(('gG', [0,   0,    0]))
+        extrema.append(('X',  [1/2, 0,    0]))
+        extrema.append(('H1', [1-n, v,    0]))
+        extrema.append(('gG', [0,   0,    0]))
+        extrema.append(('C',  [1/2, 1/2,  0]))
+        extrema.append(('H',  [n,   1-v,  0]))
+        extrema.append(('Y',  [0,   1/2,  0]))
+        extrema.append(('gG', [0,   0,    0]))
+        extrema.append(('H2', [n,   -v,   0]))
+        
+        extrema = np.array(extrema)
+        if gamma > 90:
+            extrema[:,0] *= -1
+        # elif ldir == 102:
+        #     pass
+
+    if not len(extrema):
+        raise NotImplementedError
+
+    # print(extrema)
+
+    extr = [_[1] for _ in extrema]
+
+    extrema_cart = np.dot(extr, cell)
+    points = np.array(extrema[0][1]).reshape(1,3)
+    labels = [(0, extrema[0][0]), ]
+    for i in range(len(extrema) - 1):
+        _, p1 = extrema[i]
+        nl, p2 = extrema[i+1]
+        p1_c = extrema_cart[i]
+        p2_c = extrema_cart[i+1]
+
+        dist = np.linalg.norm(p2_c - p1_c)
+        num  = int(dist / dk) + 1
+
+        new = np.linspace(p1,p2, num=num)
+        points = np.vstack((points, new[1:]))
+
+        labels.append((len(points)-1, nl))
+
+    res = orm.KpointsData()
+    res.set_cell(cell)
+    res.set_kpoints(points, labels=labels)
+
+    return res
